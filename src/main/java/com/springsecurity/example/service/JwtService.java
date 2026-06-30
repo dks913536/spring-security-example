@@ -20,4 +20,11 @@ public class JwtService {
                 .withExpiresAt(new Date(System.currentTimeMillis()+EXPIRATION_TIME))
                 .sign(Algorithm.HMAC256(SECRET_KEY));
     }
+
+    public String validateTokenAndRetrieveSubject(String token){
+        return  JWT.require(Algorithm.HMAC256(SECRET_KEY))
+                .build()
+                .verify(token)
+                .getSubject();
+    }
 }

@@ -1,6 +1,7 @@
 package com.springsecurity.example.config;
 
 import com.springsecurity.example.service.CustomerUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -24,6 +26,9 @@ public class SecurityConfig {
             "/api/v1/auth/login"
     };
 
+    @Autowired
+    private JWTFilter filter;
+
     @Bean
     public SecurityFilterChain securityConfiguration(HttpSecurity httpSecurity) throws Exception{
 
@@ -34,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/welcome").hasAnyRole("ADMIN","USER")
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 
@@ -53,11 +58,11 @@ public class SecurityConfig {
             CustomerUserDetailsService customerUserDetailsService,
             PasswordEncoder passwordEncoder){
 
-        DaoAuthenticationProvider provider =
+        DaoAuthenticationProvider authProvider =
                 new DaoAuthenticationProvider(customerUserDetailsService);
 
-        provider.setPasswordEncoder(passwordEncoder);
+        authProvider.setPasswordEncoder(passwordEncoder);
 
-        return provider;
+        return authProvider;
     }
 }
